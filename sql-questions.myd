@@ -1,0 +1,13 @@
+Q1. Find the highest number of parking spots across all properties
+A1. select max(parking_spots) as max_parking_spots 
+    from airbnb_dim_property;
+
+Q2. Among videos with duration > 5 min, how many unique users watched per video? 
+Output the video_id and count. Order by number of distinct viewers desc.
+A2. 
+SELECT video_id, COUNT(DISTINCT user_id) AS number_of_distinct_users
+FROM youtube_reactions
+    WHERE video_id IN (SELECT video_id FROM youtube_videos WHERE duration_sec > 300)
+GROUP BY video_id
+ORDER BY 2 desc;
+
