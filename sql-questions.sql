@@ -175,4 +175,27 @@ FROM google_search_activity
 GROUP BY advertisement
 order by 1 asc;
 
-/* */ 
+/* Q10. Your manager wants a cleaned up report with only Low, Med, High as 
+growth types broken down by total count. Help him clean up the data with 
+just those values and when you return your answer make sure its sorted by total desc.
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+growth_typecleaned	total
+Low	31
+High	13
+Med	6
+
+
+*/ 
+
+SELECT
+CASE
+  WHEN growth_type = 'Loww' THEN 'Low'
+  WHEN growth_type = 'low' THEN 'Low'
+  WHEN growth_type = 'Hgh' THEN 'High'
+  ELSE growth_type
+END as growth_typecleaned, count(*) as total
+FROM messy_data
+GROUP BY growth_typecleaned
