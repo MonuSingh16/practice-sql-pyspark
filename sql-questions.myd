@@ -109,3 +109,72 @@ FROM (
 GROUP BY country
 ORDER BY country;
 
+Q7. How many transactions have missing payment method?
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+num_missing
+19
+
+A7. 
+
+SELECT count(transaction_id) as num_missing
+FROM appstore_transactions	
+WHERE payment_method is NULL
+
+SELECT count(*) num_missing
+FROM appstore_transactions
+WHERE payment_method IS NULL;
+
+Q8. Find the top poster(s) on Facebook and count how many of each post type they had. 
+Please consider ties and return all users if tie exists. Order answer by creator asc and post type asc.
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+creator	post_type	total_posts
+2	ad	1
+2	poll	1
+2	post	1
+2	video	2
+8	ad	1
+8	poll	2
+8	post	2
+
+A8. 
+
+with posts_rpt as ( 
+    select 
+     user_id 
+    ,rank() over(order by count(*) desc) rnk 
+    from fb_posts 
+    group by 1 
+) 
+Select 
+ user_id creator
+,post_type
+,count(*) total_posts 
+from fb_posts 
+where user_id in (select user_id from posts_rpt where rnk = 1) 
+group by 1, 2 
+order by 1, 2
+
+Q9. What is the global click through rate (CTR) of advertisement and non-advertisement link types?
+CTR = # of Clicked / # of Viewed in this scenario. Round conversion to the 2 decimal points and order by advertisement asc.
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+advertisement	conversion
+0	0.41
+1	0.5
+
+A9. 
+SELECT advertisement, 
+    round(SUM(CASE WHEN event_type = 'clicked' THEN 1 ELSE 0 END) 
+    / SUM(CASE WHEN event_type = 'viewed' THEN 1 ELSE 0 END), 2) conversion
+FROM google_search_activity
+GROUP BY advertisement
+order by 1 asc;
+
