@@ -11,3 +11,101 @@ FROM youtube_reactions
 GROUP BY video_id
 ORDER BY 2 desc;
 
+Q3. What is the average time in days it takes for a user to enroll in prime after creating an account?
+Ignore users who never joined prime. Round to 2 decimal places.
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+avg_days_to_join
+7.88
+
+A3. 
+select round(avg(datediff(prime_joined_dt, joined_dt)), 2) as avg_days_to_join
+from amazon_users
+where prime_member = 1
+
+SELECT avg(timestampdiff(day, joined_dt, prime_joined_dt)) avg_days_to_join
+FROM amazon_users
+WHERE prime_member = 1;
+
+Q4. What is the average video duration in minutes of monetized videos and non-monetized videos
+among users in UK, Australia, and US? Output the monetization type and average duration in minutes.
+ Round duration to the 2 decimal points.
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+is_monetized	avg_video_duration
+0	5.28
+1	5.75
+
+A4. 
+
+SELECT a.is_monetized, round(avg(a.duration_sec) / 60, 2)
+FROM youtube_videos a
+WHERE user_id IN (
+  SELECT DISTINCT(user_id)
+  FROM youtube_users
+  WHERE country in (
+  'UK', 'Australia', 'US'
+  )
+)
+GROUP BY is_monetized
+
+SELECT is_monetized, round(cast(avg(duration_sec) as double) /60, 2) avg_video_duration
+FROM youtube_videos
+JOIN (SELECT user_id FROM youtube_users WHERE country IN ('UK', 'Australia', 'US')) u
+USING (user_id)
+GROUP BY is_monetized;
+
+Q5. Find the top 5 largest properties at AirBnB (3000+ sqft). Ignore ties, return exactly 5 order by property id asc.
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+property_id
+2
+3
+4
+15
+25
+
+A5. 
+select property_id 
+from airbnb_dim_property 
+where total_sqft = '3000+' 
+order by property_id ASC 
+limit 5
+
+Q6. In each country, what is the percentage of users who enrolled on prime within 5 days 
+(inclusive) after joining Amazon? Round to 2 decimal places and order the output by country asc.
+
+Expected Output:
+
+Your answer should match this structure exactly. Keep in mind SQL sorting, grouping, & rounding when answering.
+country	percentage
+Australia	25
+Brazil	7.69
+China	14.29
+France	20
+UK	14.29
+US	7.14
+
+A6.
+SELECT country, 
+    round(avg(joined_prime_within_5_days) * 100, 2) as percentage
+FROM (
+    SELECT country,
+        CASE 
+            WHEN timestampdiff(day, joined_dt, prime_joined_dt) <= 5
+            THEN 1 
+            ELSE 0
+        END joined_prime_within_5_days,
+        joined_dt,
+        prime_joined_dt
+    FROM amazon_users
+) prime_users
+GROUP BY country
+ORDER BY country;
+
