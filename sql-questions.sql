@@ -199,3 +199,111 @@ CASE
 END as growth_typecleaned, count(*) as total
 FROM messy_data
 GROUP BY growth_typecleaned
+
+/* Q11.  Find the total number of luxury properties that AirBnb. */
+
+SELECT COUNT(property_type) as total_luxury_properties
+FROM airbnb_dim_property
+WHERE property_type = 'Luxury'
+
+------------
+
+select count(*) as total_luxury_properties 
+from airbnb_dim_property 
+where property_type = 'Luxury';
+
+/* Q12. Find the total number of impressions each ad received. Sort answer by impressions desc and ad asc.
+*/
+
+SELECT ad_name, COUNT(ad_exp_id) as ad_impressions
+FROM ads_actions
+GROUP BY ad_name
+ORDER BY 2 DESC, 1 ASC;
+
+------------
+
+select
+ ad_name
+,count(*) ad_impressions
+from ads_actions
+group by 1
+order by 2 desc, 1 asc
+
+/* Q13.   */
+
+WITH top_property as (
+SELECT property_id
+,RANK() OVER(ORDER BY SUM(num_of_nights) DESC) rnk
+FROM airbnb_fct_rentals
+GROUP BY 1
+  )
+SELECT property_id from top_property WHERE rnk = 1
+
+-------------
+
+with property_rpt as (
+    SELECT property_id
+    ,count(*) rentals
+    ,rank() over(order by count(*) desc) rnk
+    from airbnb_fct_rentals r
+    group by 1
+)
+select property_id
+from property_rpt
+where rnk = 1
+order by 1 asc
+
+/*Q14. Among all the events after April 1, 2022, what is the total count as well as 
+the most recent datetime of each event type? Order the output in the alphabetical order of event_type.
+*/
+
+SELECT event_type, COUNT(*) as ride_counts
+,date(max(creation_dt)) event_datetime
+FROM google_maps_actions
+WHERE creation_dt > '2022-04-01'
+GROUP BY 1
+ORDER BY 1 ASC;
+
+
+/* Q15. Find the percent of users who are permanently banned. Round your answer to 2 decimals.
+*/
+
+SELECT
+ROUND(COUNT(CASE WHEN is_temporary = 0 THEN 1 ELSE NULL END) / 
+  COUNT(*) * 100, 2) permanent_banned_prcnt
+FROM banned_users
+
+
+/* Q16. You are on the Digital Marketing team at Google. You are asked to find 
+what is the click-through-rate, (CTR), per each website type? CTR = # of Clicked / # of Viewed. 
+Be sure to use the 'event_type' column for this one and not the 'conversion' column, 
+our data engineer said theres some bugs in this one. Round to 2 decimal places. 
+Output answer sorted by type asc.
+*/
+
+SELECT A.type, 
+ROUND(SUM(CASE WHEN A.event_type = 'clicked' THEN 1 ELSE 0 END) /
+  SUM(CASE WHEN A.event_type = 'viewed' THEN 1 ELSE 0 END), 2 )conversion
+FROM
+(SELECT a.*, b.type
+FROM google_search_activity a
+JOIN google_search_websites b
+ON a.website_id = b.website_id) A
+GROUP BY A.type
+ORDER BY 1 ASC;
+
+-----------------
+
+WITH website_type AS (
+    SELECT type, event_type
+    FROM google_search_websites
+    JOIN google_search_activity
+    USING (website_id)
+)
+SELECT type, 
+    round(sum(case when event_type = 'clicked' then 1 else 0 end) 
+    / sum(case when event_type = 'viewed' then 1 else 0 end), 2) conversion
+FROM website_type
+GROUP BY type
+ORDER BY type;
+
