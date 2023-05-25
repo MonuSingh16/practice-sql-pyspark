@@ -608,5 +608,61 @@ from polls_rpt
 order by 1 asc
 
 
- 
+ /* Q.34 Given a table of bank transactions with columns id, transaction_value, 
+ and created_at representing the date and time for each transaction, write a query to get the last transaction for each day.
+*/
+WITH timed_transactions AS 
+       (
+	SELECT * , ROW_NUMBER() OVER (PARTITION BY DATE(created_at) ORDER BY created_at DESC) as ordered_time
+	FROM bank_transactions
+	)
+SELECT  created_at,transaction_value, id  FROM timed_transactions
+WHERE ordered_time = 1;
+
+--
+SELECT * FROM bank_transactions 
+WHERE created_at IN ( SELECT MAX(created_at) 
+AS maxdate 
+FROM bank_transactions 
+GROUP BY DATE(created_at) )
+
+/* Q35. 
+Given a table of transactions and a table of users, write a query to determine if users tend to order more to their primary address versus other addresses.
+
+Note: Return the percentage of transactions ordered to their home address as home_address_percent.
+
+*/
+SELECT
+ROUND( 
+SUM(CASE WHEN u.address = t.shipping_address THEN 1 END)
+/ COUNT(t.id)
+,2)  as home_address_percent
+FROM transactions as t
+JOIN users as u
+ON t.user_id = u.id
+
+/* Q36. We’re given two tables, a users table with demographic information and the neighborhood they live in and a neighborhoods table.
+
+Write a query that returns all neighborhoods that have 0 users. 
+
+*/
+/* 
+Whenever the question asks about finding values with 0 something (users, employees, posts, etc..)
+ immediately think of the concept of LEFT JOIN! An inner join finds any values
+  that are in both tables, a left join keeps only the values in the left table.
+
+*/
+
+SELECT name FROM neighborhoods 
+WHERE id not in (
+    SELECT distinct neighborhood_id
+    FROM users)
+
+--------------
+
+SELECT n.name   
+FROM neighborhoods AS n 
+LEFT JOIN users AS u
+    ON n.id = u.neighborhood_id
+WHERE u.id IS NULL
 
